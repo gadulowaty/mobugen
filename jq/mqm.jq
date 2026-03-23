@@ -140,7 +140,7 @@ def mqttobjects($version; $enumlist):
     .[]
     | (.access | ascii_downcase)
       as $access
-    | ([ $network, $slave_address, address ] | join("."))
+    | ([ $network, $slave_address, if ( address != 0 ) then address else "0x0" end ] | join("."))
       as $register
     | (.type | ascii_downcase)
       as $register_type

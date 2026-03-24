@@ -5,6 +5,22 @@ module { "name": "mqm" };
 
 import "dimplex" as dimplex { search: "./" };
 import "mqtt" as mqtt { search: "./" };
+import "nums" as nums { search: "./" };
+
+def hexChr:
+  floor | if . < 10 then . else ["A", "B", "C", "D", "E", "F"][. % 10] end
+;
+
+def toHex:
+  def toHex:
+      if . / 16 >= 1 then 
+          (. / 16 | toHex), (. % 16 | hexChr)
+      else
+          . % 16 | hexChr
+      end
+  ;
+  [toHex] | join("")
+;
 
 ##
 # Calculates the effective Modbus address of a register.
@@ -16,7 +32,11 @@ import "mqtt" as mqtt { search: "./" };
 # Output: Effective Modbus address of the register
 ##
 def address:
- .address + ($ENV.MQM_ADDRESS_OFFSET // 0 | tonumber)
+  if .address | tostring | startswith( "0x" ) then
+    ( "0x" + ( ( ( .address[2:] | nums::from_base( 16 ) ) + ($ENV.MQM_ADDRESS_OFFSET // 0 | tonumber) ) | toHex ) )
+  else
+    ( .address + ($ENV.MQM_ADDRESS_OFFSET // 0 | tonumber) )
+  end
 ;
 
 ##
@@ -140,7 +160,7 @@ def mqttobjects($version; $enumlist):
     .[]
     | (.access | ascii_downcase)
       as $access
-    | ([ $network, $slave_address, if ( address != 0 ) then address else "0x0" end ] | join("."))
+    | ([ $network, $slave_address, address ] | join("."))
       as $register
     | (.type | ascii_downcase)
       as $register_type

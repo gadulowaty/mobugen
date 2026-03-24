@@ -269,7 +269,7 @@ def payload_press:
 def basic($domain; $enums):
   {
     name: .name,
-    default_entity_id: mqtt::topic | mqtt::slug("_"),
+    default_entity_id: ( $domain + "." + ( mqtt::topic | mqtt::slug("_") ) ),
     unique_id: mqtt::topic | mqtt::slug("_"),
   }
   + entity_category

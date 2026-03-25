@@ -56,6 +56,12 @@ def domain:
     elif $access == "rw" then "switch"
     else null
     end
+  elif $type == "input" then
+    if   $access == "r"  then "binary_sensor"
+    elif $access == "w"  then "button"
+    elif $access == "rw" then "switch"
+    else null
+    end
   elif $type == "holding" then
     if $access == "r"     then "sensor"
     elif .class == "text" then "text"

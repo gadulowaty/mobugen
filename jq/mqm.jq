@@ -175,7 +175,7 @@ def mqttobjects($version; $enumlist):
 
     | { topic: mqtt::topic }
     + if $access | contains("r") then { state: $state } else {} end
-    + if $access | contains("w") then { command: $command } else {} end
+    + if $access | contains("w") then { commands: $command } else {} end
   ] | { mqtt: { objects: . } }
 ;
 

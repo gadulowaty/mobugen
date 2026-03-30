@@ -179,6 +179,6 @@ def mqttobjects($version; $enumlist):
   ] | { mqtt: { objects: . } }
 ;
 
-def config($version; $enumlist):
+def config($version; $enumlist; $device):
   mqttobjects($version; $enumlist)
 ;

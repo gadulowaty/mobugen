@@ -17,10 +17,10 @@ def slug($separator):
   | ascii_downcase
   | gsub("Ä"; "ä")  | gsub("Ö"; "ö")  | gsub("Ü"; "ü")  | gsub("ẞ"; "ß")
   | gsub("ä"; "ae") | gsub("ö"; "oe") | gsub("ü"; "ue") | gsub("ß"; "ss")
-  | gsub("ą"; "a")  | gsub("ć"; "c")  | gsub("ę"; "e")  | gsub("ł", "l")
+  | gsub("ą"; "a")  | gsub("ć"; "c")  | gsub("ę"; "e")  | gsub("ł"; "l")
   | gsub("ń"; "n")  | gsub("ó"; "o")  | gsub("ś"; "s")  | gsub("ż"; "z")
   | gsub("ź"; "z")
-  | gsub("Ą"; "a")  | gsub("Ć"; "c")  | gsub("Ę"; "e")  | gsub("Ł", "l")
+  | gsub("Ą"; "a")  | gsub("Ć"; "c")  | gsub("Ę"; "e")  | gsub("Ł"; "l")
   | gsub("Ń"; "n")  | gsub("Ó"; "o")  | gsub("Ś"; "s")  | gsub("Ż"; "z")
   | gsub("Ź"; "z")
   | gsub("[^\\w]+"; $separator)

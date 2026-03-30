@@ -118,11 +118,15 @@ def constraints:
 # Output: An object containing a `device` property,
 #          or `null` if the env variable is not set
 ##
-def device:
+def device($device):
   $ENV.HA_DEVICE_ID as $deviceid
-  | if $deviceid | type == "string"
-    then { device: { identifiers: [ $deviceid ] } }
-    else null end
+  | if   $deviceid | type == "string" then
+      { device: { identifiers: [ $deviceid ] } }
+    elif $device | type == "array" then 
+      { device: $device[0] } 
+    else
+      null
+    end
 ;
 
 ##
@@ -278,7 +282,7 @@ def payload_press:
 # $enums:  An object with enum definitions
 # Output: A configuration object with basic properties
 ##
-def basic($domain; $enums):
+def basic($domain; $enums; $device):
   {
     name: .name,
     default_entity_id: ( $domain + "." + ( mqtt::topic | mqtt::slug("_") ) ),
@@ -286,7 +290,7 @@ def basic($domain; $enums):
   }
   + entity_category
   + device_class($domain; $enums)
-  + device
+  + device($device)
   + {
       json_attributes_template: ({}
         + wrap(.domain | select(. != ""); "domain")
@@ -331,11 +335,11 @@ def state_variables:
 # Output: A configuration object containing all properties
 #          for the Home Assistant config
 ##
-def config_for($domain; $enums):
+def config_for($domain; $enums; $device):
   .
   | state_variables as $state
   | command_variables as $command
-  | basic($domain; enums)
+  | basic($domain; enums; $device)
   + if $domain == "binary_sensor" then $state + payload_binary
   elif $domain == "sensor"        then $state + state_class + unit_of_measurement
   elif $domain == "button"        then $command + payload_press
@@ -378,20 +382,20 @@ def customize_for($key):
 # $version:  A (target) version string, e.g. "M3.13", "M3", "M"
 # $enumlist: A list of enum definitions
 # Output:    An object containing a Home Assistant configuration
-def mqttconfig($version; $enumlist):
+def mqttconfig($version; $enumlist; $device):
   .
   | ($enumlist | enums($version)) as $enums
   | dimplex::registers($version)
   | [
     .[]
     | domain as $domain
-    | config_for($domain; $enums) as $mqtt_config
+    | config_for($domain; $enums; $device) as $mqtt_config
     | customize_for($domain + "." + $mqtt_config.default_entity_id) as $customize
     | { mqtt: {($domain): $mqtt_config}, customize: $customize }
   ] | { mqtt: map(.mqtt), homeassistant: { customize: (map(.customize) | add) }
   }
 ;
 
-def config($version; $enumlist):
-  mqttconfig($version; $enumlist)
+def config($version; $enumlist; $device):
+  mqttconfig($version; $enumlist; $device)
 ;

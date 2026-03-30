@@ -6,8 +6,10 @@ module="$(basename "${0%%-gojq-generator}")"
 script=$(printf '
   import "csv" as csv;
   import "%s" as gen;
-  (($ARGS.named.enums | select(. != null) | csv::csvtojson) // []) as $enums
-  | csv::csvtojson | gen::config($version; $enums)
+  $ARGS.named.device as $device
+  | $ARGS.named.device as $adevice
+  | (($ARGS.named.enums | select(. != null) | csv::csvtojson) // []) as $enums
+  | csv::csvtojson | gen::config($version; $enums; $device)
 ' "${module}")
 JQ_MODULES_PATH="${JQ_MODULES_PATH:-${here}/../jq}"
 
@@ -26,11 +28,13 @@ main() {
   version="${1}"
   registers="${2:-registers.csv}"
   enums="${3-enums.csv}"
+  device="${4-}"
 
   gojq \
     -L "${JQ_MODULES_PATH}" \
     --arg version "${version}" \
     ${enums:+--rawfile enums "${enums}"} \
+    ${device:+--slurpfile device "${device}"} \
     --raw-input --slurp \
     --yaml-output \
     "${script}" \

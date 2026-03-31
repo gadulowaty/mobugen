@@ -159,7 +159,7 @@ def device_class($domain; $enums):
     elif .class == "open"      then "opening"
     elif .class == "problem"   then "problem"
     elif .class == "option"    then null
-    else null end
+    else .class end
   elif ($domain | IN("sensor", "number")) then
       if .unit | IN("°C", "K") then "temperature"
     elif .unit == "%"          then "humidity"

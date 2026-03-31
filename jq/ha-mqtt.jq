@@ -294,7 +294,7 @@ def basic($domain; $enums; $device):
     unique_id: mqtt::topic | mqtt::slug("_"),
   }
   + (
-    if .icon then
+    if .icon and .icon != "" then
       { icon: ( if .icon[0:4] != "mdi:" then "mdi:" + .icon else .icon end ) }
     else
       null

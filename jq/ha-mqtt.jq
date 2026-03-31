@@ -397,7 +397,7 @@ def mqttconfig($version; $enumlist; $device):
     .[]
     | domain as $domain
     | config_for($domain; $enums; $device) as $mqtt_config
-    | customize_for($domain + "." + $mqtt_config.default_entity_id) as $customize
+    | customize_for($mqtt_config.default_entity_id) as $customize
     | { mqtt: {($domain): $mqtt_config}, customize: $customize }
   ] | { mqtt: map(.mqtt), homeassistant: { customize: (map(.customize) | add) }
   }

@@ -288,6 +288,13 @@ def basic($domain; $enums; $device):
     default_entity_id: ( $domain + "." + ( mqtt::topic | mqtt::slug("_") ) ),
     unique_id: mqtt::topic | mqtt::slug("_"),
   }
+  + (
+    if .icon then
+      { icon: ( if .icon[0:4] != "mdi:" then "mdi:" + .icon else .icon end ) }
+    else
+      null
+    end
+  )
   + entity_category
   + device_class($domain; $enums)
   + device($device)

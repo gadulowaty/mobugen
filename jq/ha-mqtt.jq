@@ -159,7 +159,11 @@ def device_class($domain; $enums):
     elif .class == "open"      then "opening"
     elif .class == "problem"   then "problem"
     elif .class == "option"    then null
-    else .class end
+    elif .class != ""          then .class
+    else null end
+  elif $domain == "switch" then
+    if .class != "" then .class
+    else null end
   elif ($domain | IN("sensor", "number")) then
       if .unit | IN("°C", "K") then "temperature"
     elif .unit == "%"          then "humidity"
@@ -170,6 +174,7 @@ def device_class($domain; $enums):
     elif dimplex::isenum
          and (.scale == "")
          and (.offset == "")   then "enum"
+    elif .class != ""          then .class
     else null end
   else null end
   | wrap(.; "device_class")

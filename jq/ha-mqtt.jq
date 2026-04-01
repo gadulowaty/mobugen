@@ -83,20 +83,6 @@ def domain:
 ;
 
 ##
-# Filters a value and wraps the result in an object.
-#
-# Input:  A value
-# filter: A filter that is applied to the input value
-# $name:  Name of the property containing the filter result 
-# Output: An object containing the single property $name
-#          holding the filter result as value;
-#          `null` if the filter outputs nothing or an error
-##
-def wrap(filter; $name):
-  ({ ($name): (try filter | select(. != null)) }) // null
-;
-
-##
 # Returns constraints for the values of a register
 #
 # Input:  A register definition
@@ -104,9 +90,9 @@ def wrap(filter; $name):
 #          for the register, or `null` if no such constraints exist
 ##
 def constraints:
-  (.min | wrap(tonumber; "min"))
-  + (.max | wrap(tonumber; "max"))
-  + (.scale | wrap(tonumber; "step"))
+  (.min | mqtt::wrap(tonumber; "min"))
+  + (.max | mqtt::wrap(tonumber; "max"))
+  + (.scale | mqtt::wrap(tonumber; "step"))
 ;
 
 ##
@@ -137,7 +123,7 @@ def device($device):
 # Output: An object containing an `options` property with enum descriptions
 ##
 def options($enums):
-  wrap(dimplex::enum($enums); "options")
+  mqtt::wrap(dimplex::enum($enums); "options")
 ;
 
 ##
@@ -177,7 +163,7 @@ def device_class($domain; $enums):
     elif .class != ""          then .class
     else null end
   else null end
-  | wrap(.; "device_class")
+  | mqtt::wrap(.; "device_class")
   + (if . == "enum" then $item | options($enums) else null end)
 ;
 
@@ -192,7 +178,7 @@ def entity_category:
   then "diagnostic"
   else "config"
   end
-  | wrap(.; "entity_category")
+  | mqtt::wrap(.; "entity_category")
 ;
 
 ##
@@ -296,7 +282,7 @@ def basic($domain; $enums; $device):
   }
   + (
     if .icon and .icon != "" then
-      wrap( if .icon[0:4] != "mdi:" then "mdi:" + .icon else .icon end; "icon")
+      mqtt::wrap( if .icon[0:4] != "mdi:" then "mdi:" + .icon else .icon end; "icon")
     else
       null
     end
@@ -306,9 +292,9 @@ def basic($domain; $enums; $device):
   + device($device)
   + {
       json_attributes_template: ({}
-        + wrap(.domain | select(. != ""); "domain")
-        + wrap(.device | select(. != ""); "device")
-        + wrap(.part   | select(. != ""); "part")
+        + mqtt::wrap(.domain | select(. != ""); "domain")
+        + mqtt::wrap(.device | select(. != ""); "device")
+        + mqtt::wrap(.part   | select(. != ""); "part")
       ) | tostring
     }
   + { json_attributes_topic: mqtt::topic }
@@ -323,7 +309,7 @@ def basic($domain; $enums; $device):
 ##
 def command_variables:
   if .access | ascii_downcase | contains("w") | not then null
-  else wrap(mqtt::command_topic; "command_topic") end
+  else mqtt::wrap(mqtt::command_topic; "command_topic") end
 ;
 
 ##
@@ -335,8 +321,8 @@ def command_variables:
 ##
 def state_variables:
   (if .unit == "1/min" then "/ 60 " else "" end) as $operation
-  | wrap(mqtt::state_topic; "state_topic")
-  + wrap("{{ value_json.state \($operation)}}"; "value_template")
+  | mqtt::wrap(mqtt::state_topic; "state_topic")
+  + mqtt::wrap("{{ value_json.state \($operation)}}"; "value_template")
 ;
 
 ##
@@ -379,11 +365,11 @@ def config_for($domain; $enums; $device):
 #           `friendly_name` and custom attributes
 ##
 def customize_for($key):
-  def take($source; $target): wrap(.[($source)] | select(. != ""); $target);
+  def take($source; $target): mqtt::wrap(.[($source)] | select(. != ""); $target);
   def takeall($names): . as $item | $names | [ .[] | . as $name | $item | take($name; $name) ] | add;
   ($ENV.HA_CUSTOM_ATTRIBUTES // "category,subcategory,domain,device,part")
     as $custom_attributes
-  | wrap(
+  | mqtt::wrap(
       take("name"; "friendly_name") + takeall($custom_attributes | split(","));
       $key)
 ;

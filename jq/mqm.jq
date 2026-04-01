@@ -174,6 +174,7 @@ def mqttobjects($version; $enumlist):
       as $command
 
     | { topic: mqtt::topic }
+    + mqtt::wrap( if .refresh and .refresh != "" then .refresh else null end; "refresh" )
     + if $access | contains("r") then { state: $state } else {} end
     + if $access | contains("w") then { commands: $command } else {} end
   ] | { mqtt: { objects: . } }

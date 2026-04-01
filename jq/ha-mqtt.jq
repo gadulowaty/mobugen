@@ -242,9 +242,10 @@ def state_class:
 def binary($prefix):
   def flip: map_values((. + 1) % 2);
   .class as $class
+  | ( .options // "" ) as $options
   | { off: 0, on: 1 }
   | with_entries(.key = ($prefix + "_" + .key))
-  | if $class == "lock" then flip else . end
+  | if $class == "lock" or ($options | contains("R")) then flip else . end
 ;
 
 ##
@@ -295,7 +296,7 @@ def basic($domain; $enums; $device):
   }
   + (
     if .icon and .icon != "" then
-      { icon: ( if .icon[0:4] != "mdi:" then "mdi:" + .icon else .icon end ) }
+      wrap( if .icon[0:4] != "mdi:" then "mdi:" + .icon else .icon end; "icon")
     else
       null
     end

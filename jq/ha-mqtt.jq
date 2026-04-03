@@ -290,6 +290,12 @@ def basic($domain; $enums; $device):
     end
   )
   + entity_category
+  + (
+    if .options | contains( "H" )
+    then false
+    else null
+    end | mqtt::wrap(.; "enabled_by_default")
+  )
   + device_class($domain; $enums)
   + device($device)
   + {

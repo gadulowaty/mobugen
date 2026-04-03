@@ -176,7 +176,7 @@ def device_class($domain; $enums):
 def entity_category:
   if .access | ascii_downcase == "r"
     then "diagnostic"
-  elif .options | contains( "C" )
+  elif .options and ( .options | contains( "C" ) )
     then null
   else "config"
   end
@@ -291,7 +291,7 @@ def basic($domain; $enums; $device):
   )
   + entity_category
   + (
-    if .options | contains( "H" )
+    if .options and ( .options | contains( "H" ) )
     then false
     else null
     end | mqtt::wrap(.; "enabled_by_default")

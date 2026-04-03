@@ -175,7 +175,9 @@ def device_class($domain; $enums):
 ##
 def entity_category:
   if .access | ascii_downcase == "r"
-  then "diagnostic"
+    then "diagnostic"
+  elif .options | contains( "C" )
+    then null
   else "config"
   end
   | mqtt::wrap(.; "entity_category")

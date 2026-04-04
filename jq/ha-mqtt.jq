@@ -151,11 +151,8 @@ def device_class($domain; $enums):
     if .class != "" then .class
     else null end
   elif ($domain | IN("sensor", "number")) then
-      if .unit | IN("°C", "K") then "temperature"
-    elif .unit == "%"          then "humidity"
+    if .unit | IN("°C", "K") then "temperature"
     elif .unit == "1/min"      then "frequency"
-    elif .unit == "kWh"        then "energy"
-    elif .unit == "W"          then "power"
     elif .class == "duration"  then "duration"
     elif dimplex::isenum
          and (.scale == "")

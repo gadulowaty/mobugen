@@ -203,6 +203,22 @@ def unit_of_measurement:
 ;
 
 ##
+# Returns a `suggested_display_precision` configuration object.
+#
+# Input:  A register definition
+# Output: An object containing a `suggested_display_precision` property for the register
+##
+def suggested_display_precision:
+  if dimplex::isenum then null else
+    .precision | if IN(null, "") then null else
+      {
+        suggested_display_precision: .
+      }
+    end
+  end
+;
+
+##
 # Returns a `state_class` configuration object.
 #
 # Input:  A register definition
@@ -348,13 +364,13 @@ def config_for($domain; $enums; $device):
   | command_variables as $command
   | basic($domain; enums; $device)
   + if $domain == "binary_sensor" then $state + payload_binary
-  elif $domain == "sensor"        then $state + state_class + unit_of_measurement
+  elif $domain == "sensor"        then $state + state_class + unit_of_measurement + suggested_display_precision 
   elif $domain == "button"        then $command + payload_press
   elif $domain == "notify"        then $command
   elif $domain == "select"        then $command + $state + options($enums)
   elif $domain == "switch"        then $command + $state + state_binary + payload_binary
   elif $domain == "text"          then $command + $state + { max: 1, min: 1, pattern: "[A-Z]" }
-  elif $domain == "number"        then $command + $state + unit_of_measurement + constraints
+  elif $domain == "number"        then $command + $state + unit_of_measurement + suggested_display_precision + constraints
   else null end
 ;
 

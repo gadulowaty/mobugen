@@ -210,11 +210,14 @@ def unit_of_measurement:
 ##
 def suggested_display_precision:
   if dimplex::isenum then null else
-    .precision | if IN(null, "") then null else
-      {
-        suggested_display_precision: .
-      }
-    end
+    ( if .precision and ( .precision != "" ) then
+        { suggested_display_precision: .precision }
+      elif .scale and ( .scale | tostring | contains( "." ) ) then
+        { suggested_display_precision: ( ( .scale | tostring | length ) - ( .scale | tostring | index( "." ) ) - 1 ) }
+      else
+        null
+      end
+    )
   end
 ;
 

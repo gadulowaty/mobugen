@@ -1,2 +1,2 @@
-type,address,name,since,access,data_type,min,max,unit,class,conversion,scale,offset,domain,device,part,variable,category_id,category,subcategory,icon,options,refresh
-,,,,,,,,,,,,,,,,,,,,,,
+type,address,name,since,access,data_type,min,max,unit,class,conversion,scale,precision,offset,domain,device,part,variable,category_id,category,subcategory,icon,options,refresh
+,,,,,,,,,,,,,,,,,,,,,,,

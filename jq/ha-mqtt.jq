@@ -140,10 +140,8 @@ def device_class($domain; $enums):
   . as $item
   |
   if $domain == "binary_sensor" then
-    if   .class == "lock"      then "lock"
-    elif .class == "operation" then "running"
+    if   .class == "operation" then "running"
     elif .class == "open"      then "opening"
-    elif .class == "problem"   then "problem"
     elif .class == "option"    then null
     elif .class != ""          then .class
     else null end
@@ -151,12 +149,13 @@ def device_class($domain; $enums):
     if .class != "" then .class
     else null end
   elif ($domain | IN("sensor", "number")) then
-    if .unit | IN("°C", "K") then "temperature"
+    if   .unit | IN("°C", "K") then "temperature"
     elif .unit == "1/min"      then "frequency"
     elif .class == "duration"  then "duration"
     elif dimplex::isenum
          and (.scale == "")
          and (.offset == "")   then "enum"
+    elif .class == "text"      then null
     elif .class != ""          then .class
     else null end
   else null end
@@ -228,8 +227,13 @@ def state_class:
   if dimplex::isenum | not then
     {
       state_class: (
-        if .category | IN("Laufzeiten", "Wärmemengen")
-        then "total_increasing" else "measurement" end
+        if .class == "text" then
+          null
+        elif .category | IN("Laufzeiten", "Wärmemengen") then
+          "total_increasing" 
+        else
+          "measurement"
+        end
       )
     }
   else null end

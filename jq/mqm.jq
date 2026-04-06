@@ -70,6 +70,33 @@ def enums($version):
   })
 ;
 
+def mqmdatamap($type):
+  if $type[0:3] == "str" then
+    { "size": ( ( $type[3:] | tonumber ) / 2 ), "std": "std.string", "expr": null }
+  else
+    {
+      "int8":     { "size": 1, "first": false, "swap": false, "std": "std.int8()",                                 "expr": "int16(R0)" },
+      "int8f":    { "size": 1, "first": false, "swap": false, "std": "std.int8(first=true)",                       "expr": "int16(R0)" },
+      "uint8":    { "size": 1, "first": false, "swap": false, "std": "std.uint8()",                                "expr": "R0" },
+      "uint8f":   { "size": 1, "first": false, "swap": false, "std": "std.uint8(first=true)",                      "expr": "R0" },
+
+      "int16":    { "size": 1, "first": false, "swap": false, "std": "std.int16()",                                "expr": "int16(R0)" },
+      "uint16":   { "size": 1, "first": false, "swap": false, "std": null,                                         "expr": "R0" },
+
+      "int32":    { "size": 2, "first": false, "swap": false, "std": "std.int32()",                                "expr": "int32(R0,R1)" },
+      "int32l":   { "size": 2, "first": true,  "swap": false, "std": "std.int32(low_first=true)",                  "expr": "int32(R1,R0)" },
+      "int32s":   { "size": 2, "first": false, "swap": true,  "std": "std.int32(swap_bytes=true)",                 "expr": "int32bs(R0,R1)" },
+      "int32ls":  { "size": 2, "first": true,  "swap": true,  "std": "std.int32(low_first=true,swap_bytes=true)",  "expr": "int32bs(R1,R0)" },
+
+      "uint32":   { "size": 2, "first": false, "swap": false, "std": "std.uint32()",                               "expr": "uint32(R0,R1)" },
+      "uint32l":  { "size": 2, "first": true,  "swap": false, "std": "std.uint32(low_first=true)",                 "expr": "uint32(R1,R0)" },
+      "uint32s":  { "size": 2, "first": false, "swap": true,  "std": "std.uint32(swap_bytes=true)",                "expr": "uint32bs(R0,R1)" },
+      "uint32ls": { "size": 2, "first": true,  "swap": true,  "std": "std.uint32(low_first=true,swap_bytes=true)", "expr": "uint32bs(R1,R0)" },
+
+    }[$type] // { "size": 1, "first": false, "swap": false, "std": null, "expr": "R0" }
+  end
+;
+
 ##
 # Map a register definition to an mqmgateway converter
 #
@@ -91,17 +118,27 @@ def enums($version):
 def mqmconverter($direction; $enums):
   .name as $name
   | dimplex::enum($enums) as $enum
+  | mqmdatamap(.data_type) as $datamap
   | (if $enum != null then $enum | "std.map(\(@sh))"
     elif .scale | type == "number" then
-      (if .data_type == "int16" then "int16(R0)" else "R0" end) as $factor
+      ( ( .scale|tostring|length ) - ( .scale|tostring|index(".") ) - 1 ) as $precision
       | {
-        "from-modbus": "expr.evaluate(\"\($factor) * \(.scale)\", 1)",
-        "to-modbus": "std.divide(\(.scale))"
+        "from-modbus": "expr.evaluate(\"\($datamap.expr) * \(.scale)\",precision=\($precision))",
+        "to-modbus": "std.divide(\(.scale),precision=\($precision),low_first=\($datamap.first),swap_bytes=\($datamap.swap))"
       }[$direction]
       | select(. != null)
-    elif .data_type == "int16" then "std.int16()"
+    elif $datamap.std then $datamap.std
     else empty
     end | { "converter": . }) // null
+;
+
+def mqmcount($data_type; $enums):
+  mqmdatamap($data_type) as $datamap
+  | (
+    if $datamap.size > 1 then { "count": $datamap.size }
+    else null
+    end
+  )
 ;
 
 ##
@@ -167,7 +204,8 @@ def mqttobjects($version; $enumlist):
     | ({ register: $register, name: mqtt::state }
       + if $register_type == "holding" then null
         else { register_type: $register_type } end
-      + mqmconverter("from-modbus"; $enums))
+      + mqmconverter("from-modbus"; $enums)
+      + mqmcount(.data_type; $enums))
       as $state
     | ({ register: $register, register_type: $register_type, name: mqtt::command }
       + mqmconverter("to-modbus"; $enums))

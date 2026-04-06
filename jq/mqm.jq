@@ -72,7 +72,7 @@ def enums($version):
 
 def mqmdatamap($type):
   if $type[0:3] == "str" then
-    { "size": ( ( $type[3:] | tonumber ) / 2 ), "std": "std.string", "expr": null }
+    { "size": ( ( $type[3:] | tonumber ) / 2 ), "std": "std.string()", "expr": null }
   else
     {
       "int8":     { "size": 1, "first": false, "swap": false, "std": "std.int8()",                                 "expr": "int16(R0)" },

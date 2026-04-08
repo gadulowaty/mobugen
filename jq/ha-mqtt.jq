@@ -48,6 +48,7 @@ def enums($version):
 def domain:
   .
   | (.type | ascii_downcase) as $type
+  | (.data_type // "" | ascii_downcase) as $data_type
   | (.access | ascii_downcase) as $access
   |
   if $type == "coil" then
@@ -69,7 +70,9 @@ def domain:
     else null
     end
   elif $type == "holding" then
-    if $access == "r"     then "sensor"
+    if $access == "r"     then 
+      if $data_type == "boolean" then "binary_sensor"
+      else "sensor" end
     elif .class == "text" then "text"
     elif $access == "w"   then "notify"
     elif $access == "rw"  then

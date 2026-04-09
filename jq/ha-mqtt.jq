@@ -71,7 +71,7 @@ def domain:
     end
   elif $type == "holding" then
     if $access == "r"     then 
-      if $data_type == "boolean" then "binary_sensor"
+      if $data_type == "boolean" or $data_type[0:3] == "bit" then "binary_sensor"
       else "sensor" end
     elif .class == "text" then "text"
     elif $access == "w"   then "notify"

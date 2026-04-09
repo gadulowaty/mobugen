@@ -70,9 +70,11 @@ def enums($version):
   })
 ;
 
-def mqmdatamap($type):
-  if $type[0:3] == "str" then
-    { "size": ( ( $type[3:] | tonumber ) / 2 ), "std": "std.string()", "expr": null }
+def mqmdatamap($data_type):
+  if $data_type[0:3] == "str" then
+    { "size": ( ( $data_type[3:] | tonumber ) / 2 ), "std": "std.string()", "expr": null }
+  elif $data_type[0:3] == "bit" then
+    { "size": 1, "first": false, "swap": false, "std": "std.bit(\($data_type[3:]))", "expr": null }
   else
     {
       "int8":     { "size": 1, "first": false, "swap": false, "std": "std.int8()",                                 "expr": "int16(R0)" },
@@ -93,7 +95,7 @@ def mqmdatamap($type):
       "uint32s":  { "size": 2, "first": false, "swap": true,  "std": "std.uint32(swap_bytes=true)",                "expr": "uint32bs(R0,R1)" },
       "uint32ls": { "size": 2, "first": true,  "swap": true,  "std": "std.uint32(low_first=true,swap_bytes=true)", "expr": "uint32bs(R1,R0)" },
 
-    }[$type] // { "size": 1, "first": false, "swap": false, "std": null, "expr": "R0" }
+    }[$data_type] // { "size": 1, "first": false, "swap": false, "std": null, "expr": "R0" }
   end
 ;
 
@@ -119,7 +121,8 @@ def mqmconverter($direction; $enums):
   .name as $name
   | dimplex::enum($enums) as $enum
   | mqmdatamap(.data_type) as $datamap
-  | (if $enum != null then $enum | "std.map(\(@sh))"
+  | (if $enum != null and .data_type[0:3] != "bit" then 
+      $enum | "std.map(\(@sh))"
     elif .scale | type == "number" then
       ( ( .scale|tostring|length ) - ( .scale|tostring|index(".") ) - 1 ) as $precision
       | {
